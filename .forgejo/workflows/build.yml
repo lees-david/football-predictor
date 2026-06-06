@@ -1,0 +1,88 @@
+name: Test, Build & Push
+
+on:
+  push:
+    branches:
+      - main
+      - feature/mobile-app
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: https://data.forgejo.org/actions/checkout@v4
+
+      - name: Set up Python
+        uses: https://data.forgejo.org/actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Dependencies
+        run: pip install --quiet -r app/requirements.txt
+
+      - name: Run Tests
+        env:
+          DATABASE_URL: postgresql://test:test@localhost/test
+          REDIS_URL: redis://localhost:6379
+          TRANS_EMAIL_API_KEY: ci-dummy
+          SECRET_KEY: unsafe_ci_secret_key_for_testing_purposes_only
+        run: |
+          cd app
+          python -m pytest tests/ -v --tb=short
+
+  publish-images:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: https://data.forgejo.org/actions/checkout@v4
+
+      - name: Build and Push to Local Registry
+        run: |
+          docker build \
+            --build-arg GIT_COMMIT=${{ github.sha }} \
+            --build-arg BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) \
+            --build-arg BUILD_NUMBER=${{ github.run_number }} \
+            -t worldcup-predictor-app:latest ./app
+          
+          # Push to local registry
+          REGISTRY_HOST=$(echo "${{ secrets.LOCAL_REGISTRY_URL }}" | sed -e 's|https\?://||')
+          
+          # Detect non-empty registry token or fallback
+          REG_PASS=""
+          if [ -n "${{ secrets.REGISTRY_TOKEN }}" ]; then
+            REG_PASS="${{ secrets.REGISTRY_TOKEN }}"
+          elif [ -n "${{ secrets.LOCAL_REGISTRY_TOKEN }}" ]; then
+            REG_PASS="${{ secrets.LOCAL_REGISTRY_TOKEN }}"
+          elif [ -n "${{ secrets.LOCAL_REGISTRY_PASSWORD }}" ]; then
+            REG_PASS="${{ secrets.LOCAL_REGISTRY_PASSWORD }}"
+          fi
+
+          if [ -n "$REG_PASS" ]; then
+            echo "$REG_PASS" | docker login ${{ secrets.LOCAL_REGISTRY_URL }} -u ${{ secrets.LOCAL_REGISTRY_USER }} --password-stdin
+          else
+            echo "Warning: No local registry token or password found in secrets. Attempting login without password."
+            docker login ${{ secrets.LOCAL_REGISTRY_URL }} -u ${{ secrets.LOCAL_REGISTRY_USER }} || echo "Login bypass or already logged in."
+          fi
+
+          docker tag worldcup-predictor-app:latest $REGISTRY_HOST/${{ secrets.LOCAL_REGISTRY_USER }}/worldcup-predictor-app:latest
+          docker push $REGISTRY_HOST/${{ secrets.LOCAL_REGISTRY_USER }}/worldcup-predictor-app:latest
+          docker tag worldcup-predictor-app:latest $REGISTRY_HOST/${{ secrets.LOCAL_REGISTRY_USER }}/worldcup-predictor-celery:latest
+          docker push $REGISTRY_HOST/${{ secrets.LOCAL_REGISTRY_USER }}/worldcup-predictor-celery:latest
+
+      - name: Push to GitHub Container Registry (ghcr.io)
+        run: |
+          # Push to GitHub Container Registry (ghcr.io)
+          if [ -n "${{ secrets.GHCR_TOKEN }}" ]; then
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u lees-david --password-stdin
+            docker tag worldcup-predictor-app:latest ghcr.io/lees-david/football-predictor-app:latest
+            docker push ghcr.io/lees-david/football-predictor-app:latest
+            docker tag worldcup-predictor-app:latest ghcr.io/lees-david/football-predictor-celery:latest
+            docker push ghcr.io/lees-david/football-predictor-celery:latest
+          else
+            echo "GHCR_TOKEN not found or empty. Skipping GHCR.io publish."
+          fi
+
+
+

@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>⚽ System Update — Football Predictor</title>
+    <style>
+      :root {
+        --background: #0D1117;
+        --card: rgba(22, 27, 34, 0.6);
+        --border: rgba(245, 158, 11, 0.2);
+        --primary: #F59E0B;
+        --primary-hover: #D97706;
+        --primary-glow: rgba(245, 158, 11, 0.15);
+        --text-main: #F0F6FC;
+        --text-muted: #8B949E;
+        --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background-color: var(--background);
+        color: var(--text-main);
+        font-family: var(--font-sans);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 1.5rem;
+      }
+
+      /* Subtle background grid effect */
+      body::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(rgba(245, 158, 11, 0.03) 1px, transparent 1px);
+        background-size: 24px 24px;
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      .container {
+        position: relative;
+        z-index: 2;
+        max-w: 420px;
+        width: 100%;
+        background: var(--card);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        padding: 2.5rem 2rem;
+        text-align: center;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 
+                    0 0 50px rgba(245, 158, 11, 0.05);
+        animation: zoomIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      @keyframes zoomIn {
+        from {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      .icon-container {
+        width: 5rem;
+        height: 5rem;
+        background: rgba(245, 158, 11, 0.08);
+        color: var(--primary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem auto;
+        border: 1px solid var(--border);
+        box-shadow: 0 0 20px var(--primary-glow);
+        animation: pulse 2.5s infinite ease-in-out;
+      }
+
+      @keyframes pulse {
+        0%, 100% {
+          transform: scale(1);
+          filter: drop-shadow(0 0 2px var(--primary-glow));
+        }
+        50% {
+          transform: scale(1.04);
+          filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.3));
+        }
+      }
+
+      h1 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: -0.025em;
+        margin-bottom: 0.75rem;
+        color: #FFFFFF;
+      }
+
+      p {
+        font-size: 0.925rem;
+        line-height: 1.5;
+        color: var(--text-muted);
+        margin-bottom: 1.5rem;
+      }
+
+      .status-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.625rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        background: rgba(255, 255, 255, 0.02);
+        padding: 0.6rem 1.2rem;
+        border-radius: 9999px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        margin-bottom: 1.5rem;
+      }
+
+      .indicator-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: var(--primary);
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+        animation: dot-pulse 1.8s infinite;
+      }
+
+      .indicator-dot.online {
+        background-color: #10B981;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+        animation: dot-pulse-green 1.8s infinite;
+      }
+
+      @keyframes dot-pulse {
+        0% {
+          transform: scale(0.95);
+          box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5);
+        }
+        70% {
+          transform: scale(1);
+          box-shadow: 0 0 0 6px rgba(245, 158, 11, 0);
+        }
+        100% {
+          transform: scale(0.95);
+          box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+        }
+      }
+
+      @keyframes dot-pulse-green {
+        0% {
+          transform: scale(0.95);
+          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+        }
+        70% {
+          transform: scale(1);
+          box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+        }
+        100% {
+          transform: scale(0.95);
+          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+        }
+      }
+
+      .refresh-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.625rem 1.25rem;
+        background-color: #1F2937;
+        color: #FFFFFF;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+      }
+
+      .refresh-btn:hover {
+        background-color: #374151;
+        border-color: rgba(255, 255, 255, 0.15);
+      }
+
+      .refresh-btn:active {
+        transform: scale(0.98);
+      }
+
+      .footer {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+        margin-top: 1.5rem;
+      }
+
+      /* Spin animation for button check icon */
+      .spinning {
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="icon-container">
+        <!-- SVG Shield Alert -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="M12 8v4"/>
+          <path d="M12 16h.01"/>
+        </svg>
+      </div>
+
+      <h1>System Updating</h1>
+      <p id="status-desc">
+        We are currently upgrading or restarting the app container to deploy the latest features. We'll be back online in just a moment.
+      </p>
+
+      <div>
+        <div class="status-indicator">
+          <div id="status-dot" class="indicator-dot"></div>
+          <span id="status-text">App upgrading — auto-reconnecting...</span>
+        </div>
+      </div>
+
+      <div>
+        <button id="refresh-btn" class="refresh-btn" onclick="manualCheck()">
+          <!-- SVG Refresh -->
+          <svg id="refresh-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+          </svg>
+          Check Status
+        </button>
+      </div>
+
+      <div class="footer">
+        Predictions are locked during maintenance. Thank you for your patience!
+      </div>
+    </div>
+
+    <script>
+      const statusDot = document.getElementById('status-dot');
+      const statusText = document.getElementById('status-text');
+      const statusDesc = document.getElementById('status-desc');
+      const refreshIcon = document.getElementById('refresh-icon');
+      const refreshBtn = document.getElementById('refresh-btn');
+
+      let isChecking = false;
+
+      async function checkConnection() {
+        if (isChecking) return;
+        isChecking = true;
+        refreshIcon.classList.add('spinning');
+        refreshBtn.disabled = true;
+
+        try {
+          // Attempt to call the maintenance status API endpoint
+          const res = await fetch('/api/v1/maintenance/status');
+          if (res.status === 200) {
+            const data = await res.json();
+            if (data.active === false) {
+              // System is fully operational and active is false, redirect back
+              statusText.innerText = "System online! Redirecting...";
+              statusDot.className = "indicator-dot online";
+              setTimeout(() => {
+                window.location.href = '/';
+              }, 1000);
+              return;
+            } else {
+              // Server is up, but maintenance mode is still globally set to active in DB
+              statusDot.className = "indicator-dot online";
+              statusText.innerText = "Server online — maintenance active";
+              if (data.message) {
+                statusDesc.innerText = data.message;
+              }
+            }
+          } else {
+            // Got response, but it was not 200 (e.g. 502/503 during restart)
+            statusDot.className = "indicator-dot";
+            statusText.innerText = "Container restarting — waiting for boot...";
+          }
+        } catch (err) {
+          // Connection failed (FastAPI container is fully stopped / offline)
+          statusDot.className = "indicator-dot";
+          statusText.innerText = "App offline — waiting for container...";
+        } finally {
+          setTimeout(() => {
+            refreshIcon.classList.remove('spinning');
+            refreshBtn.disabled = false;
+            isChecking = false;
+          }, 800);
+        }
+      }
+
+      // Check status automatically every 3 seconds
+      setInterval(checkConnection, 3000);
+
+      // Perform initial check on load
+      window.addEventListener('load', () => {
+        setTimeout(checkConnection, 1000);
+      });
+
+      function manualCheck() {
+        checkConnection();
+      }
+    </script>
+  </body>
+</html>

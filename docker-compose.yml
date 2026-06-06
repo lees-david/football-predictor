@@ -1,0 +1,127 @@
+services:
+  app:
+    image: 10.1.2.51:3000/david/worldcup-predictor-app:latest
+    container_name: worldcup_app
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    ports:
+      - "8084:8080"
+    volumes:
+      - ./data/uploads/leagues:/app/static/uploads/leagues
+      - ./data/logs:/app/logs
+      - ./data/backups:/app/backups
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  celery_worker:
+    image: 10.1.2.51:3000/david/worldcup-predictor-celery:latest
+    container_name: worldcup_celery
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    command: celery -A core.celery_app.celery_app worker --loglevel=info --concurrency=4
+    volumes:
+      - ./data/uploads/leagues:/app/static/uploads/leagues
+      - ./data/backups:/app/backups
+    env_file:
+      - .env
+    environment:
+      - CELERY_WORKER=1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery_beat:
+    image: 10.1.2.51:3000/david/worldcup-predictor-celery:latest
+    container_name: worldcup_celery_beat
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    command: celery -A core.celery_app.celery_app beat --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    container_name: worldcup_db
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    volumes:
+      - ./data/pgdata:/var/lib/postgresql/data
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: worldcup_redis
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy volatile-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  redis_data:
+

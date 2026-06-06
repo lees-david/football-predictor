@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body { font-family: sans-serif; background-color: #f4f4f4; color: #333; padding: 20px; }
+  .container { background-color: #fff; padding: 30px; border-radius: 8px; max-width: 600px; margin: 0 auto; }
+  h1 { color: #D4AF37; } /* Gold */
+  .section { margin-bottom: 25px; }
+  .table { width: 100%; border-collapse: collapse; }
+  .table th, .table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>⚽ World Cup Predictor - Daily Digest</h1>
+  
+  <div class="section">
+    <h2>Your Performance Today</h2>
+    <p>You earned <strong>{{ today_points }}</strong> points today!</p>
+  </div>
+
+  <div class="section">
+    <h2>League Standings</h2>
+    {% for league in leagues %}
+      <h3>{{ league.name }}</h3>
+      <p>Rank: {{ league.rank }} ({{ league.delta }} points)</p>
+    {% endfor %}
+  </div>
+
+  <div class="section">
+    <h2>⚠️ Upcoming Lock Warnings</h2>
+    <ul>
+    {% for fixture in upcoming_locks %}
+      <li>{{ fixture.home }} vs {{ fixture.away }} - Locks at {{ fixture.lock_time }}</li>
+    {% endfor %}
+    </ul>
+  </div>
+</div>
+</body>
+</html>
